@@ -54,13 +54,18 @@ def gitclone(repo, path):
         run(['/usr/bin/git', 'clone', repo, path])  
 
 
-def nuget_packages(workspace):
+def nuget_fetch(workspace, args = []):
  
+    out = os.path.join(workspace, 'packages')
+
+    cmd = ['nuget.exe', 'install', '-OutputDirectory', out]
+    cmd.extend(args);
+    cmd.append(' ');
     for root, dirs, files in os.walk(workspace):
         for name in files:
             if name == 'packages.config':
-                p = os.path.join(root, name)
-                run(['nuget.exe', 'install', '-ConfigFile', 'nuget.config', p])
+                cmd[-1] = os.path.join(root, name)
+                run(cmd)
 
 def nuget(package, path, version=None):
     cmd = ['nuget.exe', 'install', '-OutputDirectory', path]
