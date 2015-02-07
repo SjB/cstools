@@ -3,13 +3,38 @@
 # Tools/pythonlibs/SjBTools.py
 # Copyright © 2015 SjB <steve@sagacity.ca>. All Rights Reserved.
 
-import sys
+import glob
 import os
-import subprocess
-import urllib
 import shutil
+import subprocess
+import sys
+import tarfile
+import urllib
+import zipfile
 
 protobuild_url = 'https://github.com/hach-que/Protobuild/blob/master/Protobuild.exe?raw=true'
+
+def build(solution, args):
+    platform = getplatform()
+    build_tool = 'xbuild'
+    if "Windows" == platform:
+        build_tool='msbuild'
+
+    cmd = [build_tool, solution]
+    cmd.extend(args)
+
+    run(cmd)
+
+def delete(*args):
+    path = os.path.join(*args)
+
+    for f in glob.glob(path):
+        if os.path.isdir(f):
+            shutil.rmtree(f)
+
+        if os.path.isfile(f):
+            os.unlink(f)
+
 
 def getplatform():
     p = sys.platform
@@ -24,29 +49,42 @@ def getplatform():
     return ''
 
 
-def run(*args, **kwargs):
-    returncode = subprocess.call(*args, **kwargs)
-    if returncode != 0:
-        sys.exit(returncode)
+def gitclone(repo, path):
+    if not os.path.exists(path):
+        run(['/usr/bin/git', 'clone', repo, path])  
 
-def nuget(thirdparty_libdir, package, version=None):
-    cmd = ['nuget.exe', 'install', '-OutputDirectory', thirdparty_libdir]
+
+def nuget_packages(workspace):
+ 
+    for root, dirs, files in os.walk(workspace):
+        for name in files:
+            if name == 'packages.config':
+                p = os.path.join(root, name)
+                run(['nuget.exe', 'install', '-ConfigFile', 'nuget.config', p])
+
+def nuget(package, path, version=None):
+    cmd = ['nuget.exe', 'install', '-OutputDirectory', path]
     cmd.append(package)
     if version:
         cmd.extend(['-version', version])
 
     run(cmd)
 
-def build(solution, args):
-    platform = getplatform()
-    build_tool = 'xbuild'
-    if "Windows" == platform:
-        build_tool='msbuild'
 
-    cmd = [build_tool, solution]
-    cmd.extend(args)
+def run(*args, **kwargs):
+    returncode = subprocess.call(*args, **kwargs)
+    if returncode != 0:
+        sys.exit(returncode)
 
-    run(cmd)
+
+def tar(url, path):
+    filename = os.path.basename(url)
+    wget(url, filename=filename)
+    with tarfile.open(filename) as tar:
+        tar.extractall(path)
+
+    os.unlink(filename)
+
 
 def wget(url, filename=None):
     if filename:
@@ -57,9 +95,15 @@ def wget(url, filename=None):
     (filename, header) = urllib.urlretrieve(url, filename)
     print('Fetching: ' + filename)
 
-def gitclone(repo, path):
-    if not os.path.exists(path):
-        run(['/usr/bin/git', 'clone', repo, path])  
+
+def zip(url, path):
+    filename = os.path.basename(url)
+    wget(url, filename=filename)
+    with zipfile.ZipFile(filename, 'r') as zip:
+        zip.extractall(path)
+
+    os.unlink(filename)
+
 
 class Protobuild:
 
@@ -113,3 +157,4 @@ class Protobuild:
                     shutil.rmtree(p);
 
 
+        
