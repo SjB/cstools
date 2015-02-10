@@ -119,7 +119,7 @@ class NuGet:
         return False
 
 
-    def update(self, args=[], exclude = []):
+    def install(self, platform=None, args=[], exclude = []):
         if platform == None:
             platform = getplatform()
 
