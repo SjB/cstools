@@ -180,6 +180,8 @@ class Protobuild:
 
         self.run('-clean', platform)
 
+        delete(self.workspace, '*.speccache')
+
         exclude.append('.git')
         for root, dirs, files in os.walk(self.workspace):
             for name in dirs:
