@@ -153,18 +153,17 @@ class Protobuild:
         self.run('-generate', platform)
 
     def run(self, *args):
-        cmd = []
-
-        platform = getplatform()
-        if "Windows" != platform:
-            cmd.append('/usr/bin/mono')
-
-        cmd.append(self.cliapp)
-        cmd.extend(args)
-
         if os.path.exists(self.cliapp):
-            run(cmd)
-            return True
+            cmd = []
+
+            platform = getplatform()
+            if "Windows" != platform:
+                cmd.append('/usr/bin/mono')
+
+            cmd.append(self.cliapp)
+            cmd.extend(args)
+
+            return run(cmd)
 
         print("Missing %s." % self.cliapp)
         return False
