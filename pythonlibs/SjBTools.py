@@ -120,6 +120,8 @@ class NuGet:
 
 
     def update(self, args=[], exclude = []):
+        if platform == None:
+            platform = getplatform()
 
         args.append(' ')
 
@@ -129,7 +131,7 @@ class NuGet:
                     dirs.remove(dname)
 
             for name in files:
-                if name == 'packages.config':
+                if name in ['packages.config', 'packages.%s.config' % platform]:
                     args[-1] = os.path.join(root, name)
                     self.run('install', *args)
 
