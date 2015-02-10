@@ -119,11 +119,15 @@ class NuGet:
         return False
 
 
-    def update(self, args = []):
+    def update(self, args=[], exclude = []):
 
         args.append(' ')
 
         for root, dirs, files in os.walk(self.workspace):
+            for dname in dirs:
+                if os.path.join(root, dname) in exclude:
+                    dirs.remove(dname)
+
             for name in files:
                 if name == 'packages.config':
                     args[-1] = os.path.join(root, name)
@@ -186,6 +190,7 @@ class Protobuild:
         for root, dirs, files in os.walk(self.workspace):
             for name in dirs:
                 if name in exclude:
+                    dirs.remove(name)
                     continue
 
                 if name in ['obj', 'bin']:
