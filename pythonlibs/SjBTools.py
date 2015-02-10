@@ -13,6 +13,7 @@ import urllib
 import zipfile
 
 protobuild_url = 'https://github.com/hach-que/Protobuild/blob/master/Protobuild.exe?raw=true'
+nuget_url = 'http://nuget.org/nuget.exe'
 
 def build(solution, args):
     platform = getplatform()
@@ -54,27 +55,6 @@ def gitclone(repo, path):
         run(['/usr/bin/git', 'clone', repo, path])  
 
 
-def nuget_fetch(workspace, args = []):
- 
-    out = os.path.join(workspace, 'packages')
-
-    cmd = ['nuget.exe', 'install', '-OutputDirectory', out]
-    cmd.extend(args);
-    cmd.append(' ');
-    for root, dirs, files in os.walk(workspace):
-        for name in files:
-            if name == 'packages.config':
-                cmd[-1] = os.path.join(root, name)
-                run(cmd)
-
-def nuget(package, path, version=None):
-    cmd = ['nuget.exe', 'install', '-OutputDirectory', path]
-    cmd.append(package)
-    if version:
-        cmd.extend(['-version', version])
-
-    run(cmd)
-
 
 def run(*args, **kwargs):
     returncode = subprocess.call(*args, **kwargs)
@@ -109,6 +89,57 @@ def zip(url, path):
 
     os.unlink(filename)
 
+
+class NuGet:
+
+    def __init__(self, workspace):
+        self.workspace = workspace
+        self.cliapp = os.path.join(workspace, 'nuget.exe')
+
+    def exists(self):
+        return os.path.exists(self.cliapp)
+
+    def fetch(self):
+        wget(nuget_url, filename=self.cliapp)
+
+    def run(self, command, *args):
+        if os.path.exists(self.cliapp):
+            cmd = []
+
+            platform = getplatform()
+            if "Windows" != platform:
+                cmd.append('/usr/bin/mono')
+
+            out = os.path.join(self.workspace, 'packages')
+            cmd.extend([self.cliapp, command, '-OutputDirectory',  out])
+            cmd.extend(args)
+            return run(cmd)
+
+        print("Missing %s." % self.cliapp)
+        return False
+
+
+    def update(self, args = []):
+
+        args.append(' ')
+
+        for root, dirs, files in os.walk(self.workspace):
+            for name in files:
+                if name == 'packages.config':
+                    args[-1] = os.path.join(root, name)
+                    self.run('install', *args)
+
+
+    def get(self, package, path, version=None):
+        cmd = [package]
+        if version:
+            cmd.extend(['-version', version])
+
+        self.run('install', *cmd)
+
+
+    def clean(self):
+        delete(self.workspace, 'packages')
 
 class Protobuild:
 
