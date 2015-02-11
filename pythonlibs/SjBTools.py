@@ -12,7 +12,7 @@ import tarfile
 import urllib
 import zipfile
 
-protobuild_url = 'https://github.com/hach-que/Protobuild/blob/master/Protobuild.exe?raw=true'
+protobuild_url = 'https://github.com/SjB/Protobuild/blob/master/Protobuild.exe?raw=true'
 nuget_url = 'http://nuget.org/nuget.exe'
 
 def build(solution, args):
