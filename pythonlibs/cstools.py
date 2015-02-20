@@ -55,10 +55,14 @@ def getplatform():
     return ''
 
 
-def gitclone(repo, path):
+def gitclone(repo, path, branch=None):
     if not os.path.exists(path):
-        run(['/usr/bin/git', 'clone', repo, path])  
+        cmd = ['/usr/bin/git', 'clone']
+        if (branch != None):
+            cmd.extend(['-b', branch])
 
+        cmd.extend([repo, path])
+        run(cmd)
 
 
 def run(*args, **kwargs):
