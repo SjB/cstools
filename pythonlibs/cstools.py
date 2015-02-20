@@ -15,6 +15,11 @@ import zipfile
 protobuild_url = 'https://github.com/SjB/Protobuild/blob/master/Protobuild.exe?raw=true'
 nuget_url = 'http://nuget.org/nuget.exe'
 
+def configure(project_path, platform):
+    cmd = [os.path.join(project_path, 'bootstrap.py'), 'configure', '--platform', platform];
+    run(cmd)
+
+
 def build(solution, args):
     platform = getplatform()
     build_tool = 'xbuild'
