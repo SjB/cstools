@@ -9,38 +9,15 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import urllib
 import zipfile
+
+try: 
+    from urllib import urlretrieve
+except ImportError:
+    from urllib.request import urlretrieve
 
 protobuild_url = 'https://github.com/SjB/Protobuild/blob/master/Protobuild.exe?raw=true'
 nuget_url = 'http://nuget.org/nuget.exe'
-
-def configure(project_path, platform):
-    cmd = [os.path.join(project_path, 'bootstrap.py'), 'configure', '--platform', platform];
-    run(cmd)
-
-
-def build(solution, args):
-    platform = getplatform()
-    build_tool = 'xbuild'
-    if "Windows" == platform:
-        build_tool='msbuild'
-
-    cmd = [build_tool, solution]
-    cmd.extend(args)
-
-    run(cmd)
-
-def delete(*args):
-    path = os.path.join(*args)
-
-    for f in glob.glob(path):
-        if os.path.isdir(f):
-            shutil.rmtree(f)
-
-        if os.path.isfile(f):
-            os.unlink(f)
-
 
 def getplatform():
     p = sys.platform
@@ -55,9 +32,43 @@ def getplatform():
     return ''
 
 
+if "Windows" == getplatform():
+   pythoncmd = "py.exe"
+else:
+   pythoncmd = "python"
+
+
+def configure(project_path, platform):
+    cmd = [pythoncmd, os.path.join(project_path, 'bootstrap.py'), 'configure', '--platform', platform];
+    run(cmd)
+
+
+def build(solution, args):
+    platform = getplatform()
+    build_tool = 'xbuild'
+    if "Windows" == platform:
+        build_tool='msbuild'
+
+    cmd = [build_tool, solution]
+    cmd.extend(args)
+
+    run(cmd)
+
+
+def delete(*args):
+    path = os.path.join(*args)
+
+    for f in glob.glob(path):
+        if os.path.isdir(f):
+            shutil.rmtree(f)
+
+        if os.path.isfile(f):
+            os.unlink(f)
+
+
 def gitclone(repo, path, branch=None):
     if not os.path.exists(path):
-        cmd = ['/usr/bin/git', 'clone']
+        cmd = ['git', 'clone']
         if (branch != None):
             cmd.extend(['-b', branch])
 
@@ -86,7 +97,7 @@ def wget(url, filename=None):
         if dir and not os.path.exists(dir):
             os.makedirs(dir)
 
-    (filename, header) = urllib.urlretrieve(url, filename)
+    (filename, header) = urlretrieve(url, filename)
     print('Fetching: ' + filename)
 
 
